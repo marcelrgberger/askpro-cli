@@ -3,8 +3,9 @@ import { Conversation } from '../agent/conversation.js';
 import { agentLoop } from '../agent/loop.js';
 import { buildSystemPrompt } from '../agent/system-prompt.js';
 import { createToolRegistry } from '../tools/registry.js';
-import { handleCommand } from './commands.js';
+import { handleCommand, getRoleCompletions } from './commands.js';
 import { renderWelcome, renderPrompt, renderError, renderToolCall, renderInfo } from './renderer.js';
+import { RoleRegistry } from '../roles/registry.js';
 import type { CliArgs } from './args.js';
 import { loadSettings, saveSettings } from '../config/settings.js';
 import { ensureGlobalDirs } from '../config/paths.js';
@@ -170,12 +171,23 @@ export async function startRepl(args: CliArgs): Promise<void> {
   }
 
   const conversation = new Conversation(model);
+  const roleRegistry = new RoleRegistry();
   let activeRole: string | null = args.role || null;
 
   conversation.setSystemPrompt(buildSystemPrompt(activeRole || undefined));
 
+  // askQuestion will be bound to the REPL readline after it's created
+  let replRl: readline.Interface | null = null;
+
   const commandCtx = {
     conversation,
+    roleRegistry,
+    askQuestion: (prompt: string): Promise<string> => {
+      if (!replRl) return Promise.resolve('');
+      return new Promise((resolve) => {
+        replRl!.question(prompt, (answer) => resolve(answer.trim()));
+      });
+    },
     setModel: (m: string) => {
       conversation.model = m;
       saveSettings({ model: m });
@@ -212,7 +224,22 @@ export async function startRepl(args: CliArgs): Promise<void> {
     output: process.stdout,
     prompt: renderPrompt(),
     terminal: true,
+    completer: (line: string): [string[], string] => {
+      if (line.startsWith('/role ')) {
+        const partial = line.slice(6);
+        const matches = getRoleCompletions(roleRegistry, partial);
+        return [matches.map((m) => `/role ${m}`), line];
+      }
+      if (line.startsWith('/')) {
+        const commands = ['/help', '/roles', '/role ', '/model ', '/clear', '/exit'];
+        const matches = commands.filter((c) => c.startsWith(line));
+        return [matches, line];
+      }
+      return [[], line];
+    },
   });
+
+  replRl = rl;
 
   rl.prompt();
 
