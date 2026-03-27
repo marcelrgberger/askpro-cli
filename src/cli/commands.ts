@@ -39,16 +39,31 @@ export function handleCommand(input: string, ctx: CommandContext): boolean {
       if (args[0]) {
         if (MODELS[args[0]]) {
           ctx.setModel(args[0]);
-          console.log(chalk.cyan(`  Modell gewechselt: ${args[0]}`));
+          console.log(chalk.cyan(`  Model switched: ${MODELS[args[0]].name}`));
+          console.log(chalk.dim('  Saved as default for future sessions.'));
         } else {
-          console.log(chalk.red(`  Unbekanntes Modell: ${args[0]}`));
-          console.log(chalk.dim(`  Verfuegbar: ${Object.keys(MODELS).join(', ')}`));
+          console.log(chalk.red(`  Unknown model: ${args[0]}`));
+          console.log(chalk.dim(`  Available:`));
+          for (const m of listModels()) {
+            console.log(chalk.dim(`    ${m.id} — ${m.name}`));
+          }
         }
       } else {
-        console.log(chalk.cyan(`  Aktuelles Modell: ${ctx.conversation.model}`));
-        for (const m of listModels()) {
-          console.log(chalk.dim(`    ${m.id} — ${m.name} (${(m.contextWindow / 1000).toFixed(0)}K)`));
+        console.log();
+        console.log(chalk.bold('  Available models:'));
+        console.log();
+        const current = ctx.conversation.model;
+        for (let i = 0; i < listModels().length; i++) {
+          const m = listModels()[i];
+          const isCurrent = m.id === current;
+          const marker = isCurrent ? chalk.green(' <-- active') : '';
+          const name = isCurrent ? chalk.bold(m.name) : m.name;
+          console.log(`  ${i + 1}. ${m.id} — ${name} (${(m.contextWindow / 1000).toFixed(0)}K)${marker}`);
         }
+        console.log();
+        console.log(chalk.dim('  Usage: /model <name>   e.g. /model gpt-4.1'));
+        console.log(chalk.dim('  Tip: Set per project in OPENAI.md: "- model: gpt-4.1-mini"'));
+        console.log();
       }
       return true;
 

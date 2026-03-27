@@ -4,10 +4,69 @@ import { agentLoop } from '../agent/loop.js';
 import { buildSystemPrompt } from '../agent/system-prompt.js';
 import { createToolRegistry } from '../tools/registry.js';
 import { handleCommand } from './commands.js';
-import { renderWelcome, renderPrompt, renderError, renderToolCall } from './renderer.js';
+import { renderWelcome, renderPrompt, renderError, renderToolCall, renderInfo } from './renderer.js';
 import type { CliArgs } from './args.js';
 import { loadSettings, saveSettings } from '../config/settings.js';
 import { ensureGlobalDirs } from '../config/paths.js';
+import { MODELS, DEFAULT_MODEL } from '../llm/models.js';
+import { loadConfig } from '../config/loader.js';
+import chalk from 'chalk';
+
+function askQuestion(rl: readline.Interface, question: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => resolve(answer.trim()));
+  });
+}
+
+async function selectModel(rl: readline.Interface): Promise<string> {
+  console.log();
+  console.log(chalk.bold('  Welcome! Please select your preferred model:'));
+  console.log();
+
+  const modelList = Object.values(MODELS);
+  const defaultIdx = modelList.findIndex((m) => m.id === DEFAULT_MODEL);
+
+  for (let i = 0; i < modelList.length; i++) {
+    const m = modelList[i];
+    const isDefault = m.id === DEFAULT_MODEL;
+    const prefix = isDefault ? chalk.green(`  ${i + 1}. `) : chalk.dim(`  ${i + 1}. `);
+    const name = isDefault ? chalk.bold(m.name) : m.name;
+    const ctx = chalk.dim(` (${(m.contextWindow / 1000).toFixed(0)}K context)`);
+    const def = isDefault ? chalk.green(' [default]') : '';
+    console.log(`${prefix}${name}${ctx}${def}`);
+  }
+
+  console.log();
+  const answer = await askQuestion(rl, chalk.cyan(`  Your choice [${defaultIdx + 1}]: `));
+
+  const idx = parseInt(answer, 10) - 1;
+  if (idx >= 0 && idx < modelList.length) {
+    const selected = modelList[idx].id;
+    saveSettings({ model: selected });
+    console.log(chalk.green(`  Model set: ${modelList[idx].name}`));
+    console.log(chalk.dim('  Change anytime with /model'));
+    console.log();
+    return selected;
+  }
+
+  // Default
+  saveSettings({ model: DEFAULT_MODEL });
+  console.log(chalk.green(`  Using default: ${MODELS[DEFAULT_MODEL].name}`));
+  console.log();
+  return DEFAULT_MODEL;
+}
+
+function getProjectModel(): string | null {
+  const config = loadConfig();
+  if (!config.projectInstructions) return null;
+
+  // Parse model from project OPENAI.md
+  const match = config.projectInstructions.match(/^-\s*(?:model|modell|default):\s*(\S+)/im);
+  if (match && MODELS[match[1]]) {
+    return match[1];
+  }
+  return null;
+}
 
 export async function startRepl(args: CliArgs): Promise<void> {
   ensureGlobalDirs();
@@ -17,10 +76,41 @@ export async function startRepl(args: CliArgs): Promise<void> {
   }
 
   const settings = loadSettings();
-  const model = args.model || settings.model;
-  const conversation = new Conversation(model);
   const toolRegistry = await createToolRegistry();
 
+  // Model selection priority: CLI arg > project OPENAI.md > saved setting > first-time selection
+  let model: string;
+
+  if (args.model && args.model !== DEFAULT_MODEL) {
+    // Explicit CLI argument
+    model = args.model;
+  } else {
+    const projectModel = getProjectModel();
+    if (projectModel) {
+      // Project-specific model from OPENAI.md
+      model = projectModel;
+    } else if (settings.model && settings.model !== 'gpt-4o') {
+      // Previously saved model choice (not the old default)
+      model = settings.model;
+    } else if (!settings.model || settings.model === 'gpt-4o') {
+      // First time or old default — ask user in interactive mode
+      if (!args.print) {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout,
+          terminal: true,
+        });
+        model = await selectModel(rl);
+        rl.close();
+      } else {
+        model = DEFAULT_MODEL;
+      }
+    } else {
+      model = settings.model;
+    }
+  }
+
+  const conversation = new Conversation(model);
   let activeRole: string | null = args.role || null;
 
   conversation.setSystemPrompt(buildSystemPrompt(activeRole || undefined));
@@ -29,6 +119,7 @@ export async function startRepl(args: CliArgs): Promise<void> {
     conversation,
     setModel: (m: string) => {
       conversation.model = m;
+      saveSettings({ model: m });
     },
     setRole: (r: string | null) => {
       activeRole = r;
@@ -40,7 +131,7 @@ export async function startRepl(args: CliArgs): Promise<void> {
   if (args.print) {
     conversation.addUserMessage(args.print);
     try {
-      const result = await agentLoop(conversation, toolRegistry, {
+      await agentLoop(conversation, toolRegistry, {
         onText: (text) => process.stdout.write(text),
       });
       console.log();
@@ -53,6 +144,9 @@ export async function startRepl(args: CliArgs): Promise<void> {
 
   // Interactive REPL
   renderWelcome();
+  renderInfo(`Model: ${MODELS[model]?.name || model}`);
+  if (activeRole) renderInfo(`Role: ${activeRole}`);
+  console.log();
 
   const rl = readline.createInterface({
     input: process.stdin,
