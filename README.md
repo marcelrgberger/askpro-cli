@@ -1,6 +1,6 @@
 # openai-cli
 
-**AI-powered document analysis with 65+ expert consultation roles.**
+**AI-powered document analysis with 85+ expert consultation roles.**
 
 Predefined specialist roles — from attorneys and doctors to tax advisors and architects. Reads documents of any format, automatically activates the right expert, and produces professional outputs like lawsuits, tax returns, or expert opinions.
 
@@ -10,14 +10,17 @@ Predefined specialist roles — from attorneys and doctors to tax advisors and a
 
 ## Features
 
-- **65+ Expert Roles** — Legal, Tax & Finance, Medical, Real Estate, Insurance, Business, Academia, Engineering, Consumer
+- **85+ Expert Roles** — Legal, Tax & Finance, Medical, Real Estate, Insurance, Business, Academia, Engineering, Consumer — plus 20 Germany-specific legal specialists
 - **Automatic Expert Routing** — Detects which specialist is needed based on your documents and questions
+- **Guided Consultation** — Walks you through the process step-by-step with multiple-choice questions, follow-ups, and confirmations before producing outputs
+- **Country-Aware** — Generic roles ask for your jurisdiction first, then research the applicable laws
+- **Dynamic Model Selection** — Fetches available models live from the OpenAI API; default: newest flagship model (currently GPT-5.4)
 - **All Document Formats** — PDF, DOCX, XLSX, CSV, PowerPoint, Pages, Numbers, Keynote, HTML, Emails, Images (OCR), Archives
 - **Professional Outputs** — Lawsuits, objections, tax returns, expert opinions, official letters
 - **Multi-Expert Panel** — Multiple experts simultaneously for complex cases (e.g., divorce: family law + tax + real estate)
+- **RAG Pipeline** — Semantic search across document collections via embeddings
 - **Configurable** — Global and project-specific OPENAI.md configuration files
 - **Pipe-friendly** — Non-interactive mode for scripting
-- **RAG Pipeline** — Semantic search across document collections via embeddings
 
 ## Installation
 
@@ -55,9 +58,10 @@ export OPENAI_API_KEY="sk-..."
 # Option 2: Pass at startup
 openai-cli --api-key "sk-..."
 
-# Option 3: Save to settings
-# Automatically saved after first --api-key call
+# Option 3: Saved automatically after first use
 ```
+
+On first launch, you'll be prompted to choose your preferred model from a live list fetched from the OpenAI API.
 
 ## Usage
 
@@ -69,15 +73,38 @@ openai-cli
 
 ```
   openai-cli — Expert Document Agent
-  65+ Expert Roles | Document Analysis | Professional Outputs
+  85+ Expert Roles | Document Analysis | Professional Outputs
 
-openai-cli > Check my employment contract for problematic clauses
-[Employment Law Attorney activated]
-...
+  Welcome! Fetching available models from OpenAI...
 
-openai-cli > Draft a termination protection lawsuit
-[Generating professional document]
-...
+  1. GPT-5.4 [flagship] [default]
+  2. GPT-5.4 Pro [pro]
+  3. GPT-5.4 Mini [fast]
+  4. GPT-5.4 Nano [nano]
+  5. o4-mini [reasoning]
+  ...
+
+openai-cli > I received a termination letter from my employer
+
+  In which country are you located / which law applies?
+  1. Germany
+  2. Austria
+  3. Switzerland
+  4. Other (please specify)
+
+openai-cli > 1
+
+  [Employment Law Attorney (Germany) activated]
+
+  To properly assess your situation, I need some details:
+
+  What type of termination is this?
+  1. Ordinary termination by employer
+  2. Extraordinary (immediate) termination
+  3. Change of terms notice
+  4. Mutual termination agreement
+
+  ...
 ```
 
 ### Non-Interactive Mode
@@ -91,6 +118,9 @@ openai-cli --dir ./tax-receipts/ --print "Prepare a tax return from these receip
 
 # Use a specific role
 openai-cli --role steuerberater --print "Check this tax assessment"
+
+# Use a specific model
+openai-cli --model gpt-5.4-pro --print "Complex legal analysis"
 ```
 
 ### Commands
@@ -98,17 +128,34 @@ openai-cli --role steuerberater --print "Check this tax assessment"
 | Command | Function |
 |---|---|
 | `/help` | Show help |
-| `/roles` | List all 65+ expert roles |
+| `/roles` | List all 85+ expert roles |
 | `/role <id>` | Activate a specific role (e.g., `/role steuerberater`) |
 | `/role` | Enable automatic routing |
-| `/model <name>` | Switch model (gpt-4o, gpt-4o-mini, o3, o4-mini) |
+| `/model <name>` | Switch model (fetches live from API) |
+| `/model` | Show all available models grouped by tier |
 | `/clear` | Clear conversation |
 | `/exit` | Exit |
 
+### CLI Arguments
+
+| Argument | Description |
+|---|---|
+| `--model, -m` | Model to use (default: gpt-5.4) |
+| `--role, -r` | Activate specific expert role |
+| `--dir, -d` | Directory of documents to ingest on startup |
+| `--print, -p` | Non-interactive mode: process query, print result, exit |
+| `--api-key` | OpenAI API key |
+| `--verbose, -v` | Debug output |
+
 ## Expert Roles
 
-### Legal (15 Roles)
+### Legal — General (15 Roles)
 Employment Law, Family Law, Tenant Law, Traffic Law, Inheritance Law, Criminal Law, Medical Law, Social Law, Administrative Law, IT Law, Corporate Law, Insolvency Law, Construction Law, Insurance Law, Tax Law
+
+### Legal — Germany-Specific (20 Roles)
+All official Fachanwalt specializations under the German Fachanwaltsordnung (FAO) plus additional German-specific roles:
+
+Migration Law, Transport & Freight Law, Copyright & Media Law, Banking & Capital Markets Law, Agricultural Law, Public Procurement Law, Intellectual Property Law, International Business Law, Notary (Beurkundungsrecht), Works Council Advisor, Victim's Attorney (Nebenklage), GDPR/Data Protection Attorney, Sports Law, Antitrust/Competition Law, Energy Law, Certified Mediator, Military/Soldiers' Law, Church/Religious Labor Law, Weapons & Hunting Law, Animal Law
 
 ### Tax & Finance (8 Roles)
 Tax Advisor, Financial Advisor, Auditor, Accountant, Payroll Specialist, Controller, Grants Advisor, Customs Advisor
@@ -134,6 +181,9 @@ Vehicle Expert, Electrical Engineer, Environmental Expert, IT Expert
 ### Consumer (5 Roles)
 Consumer Protection, Debt Counselor, Travel Rights, Government Services Guide, Mediator
 
+### Meta (3 Roles)
+Document Triage (automatic routing), Multi-Expert Panel (coordinated analysis), Quality Assurance (output validation)
+
 ## Supported Document Formats
 
 | Category | Formats |
@@ -145,7 +195,18 @@ Consumer Protection, Debt Counselor, Travel Rights, Government Services Guide, M
 | Email | .eml, .msg |
 | Images (OCR) | .png, .jpg, .jpeg, .tiff, .bmp, .gif, .webp |
 | E-Books | .epub |
-| Archives | .zip, .tar.gz, .tar |
+| Archives | .zip, .tar.gz, .tar (contents extracted recursively) |
+
+## Model Selection
+
+Models are fetched **live from the OpenAI API** — no hardcoded list. On first launch, you choose your preferred model. Change anytime with `/model`.
+
+You can also set a model per project in your `OPENAI.md`:
+
+```markdown
+## Model
+- model: gpt-5.4-mini
+```
 
 ## Configuration
 
@@ -155,15 +216,14 @@ Consumer Protection, Debt Counselor, Travel Rights, Government Services Guide, M
 # OPENAI.md
 
 ## Model
-- Default: gpt-4o
-- For complex reasoning: o3
+- model: gpt-5.4
 
 ## Language
-- German
+- Output language: German
 
 ## Preferences
 - Always cite legal references
-- Highlight deadlines
+- Highlight deadlines and critical dates
 ```
 
 ### Project: `./OPENAI.md`
@@ -172,11 +232,15 @@ Consumer Protection, Debt Counselor, Travel Rights, Government Services Guide, M
 # OPENAI.md
 
 ## Context
-Documents for my 2025 tax return.
+Documents for my divorce proceedings.
 
 ## Instructions
-- Focus: Income tax, work-related expenses
-- Employee, tax class 1
+- Focus: Family law, property division, child custody
+- Jointly owned property to consider
+- 2 children (ages 8 and 12)
+
+## Model
+- model: gpt-5.4-pro
 ```
 
 ## Custom Expert Roles
@@ -198,7 +262,11 @@ outputs:
 # My Custom Expert
 
 ## Expertise
-Description...
+Description of the expert's knowledge and capabilities...
+
+## Approach
+1. Step 1
+2. Step 2
 ```
 
 ## Architecture
@@ -209,14 +277,17 @@ graph TB
     B --> C{Expert Routing}
     C --> D[Single Expert]
     C --> E[Multi-Expert Panel]
-    D --> F[OpenAI API]
+    D --> F[Guided Consultation]
     E --> F
-    F --> G[Professional Output]
+    F --> G[OpenAI API]
+    G --> H[Professional Output]
 
-    H[Document Parser] --> I[Chunker]
-    I --> J[Embeddings]
-    J --> K[Vector Store]
-    K --> F
+    I[Document Parser] --> J[Chunker]
+    J --> K[Embeddings]
+    K --> L[Vector Store]
+    L --> G
+
+    M[Model Registry] -->|Live from API| G
 ```
 
 ## Platform
@@ -227,8 +298,8 @@ graph TB
 
 ## Documentation
 
-- [User Guide](docs/USER_GUIDE.md) — Detailed usage instructions with examples
-- [Developer Guide](docs/DEVELOPER_GUIDE.md) — Architecture, contributing, adding roles/parsers/tools
+- **[User Guide](docs/USER_GUIDE.md)** — Detailed usage instructions, examples, FAQ
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** — Architecture, Mermaid diagrams, contributing, adding roles/parsers/tools
 
 ## Disclaimer
 
@@ -245,4 +316,4 @@ Contributions are welcome! Especially needed:
 - Windows/Linux compatibility
 - Additional document formats
 - Improvements to existing roles
-- Tests
+- Tests and CI improvements
