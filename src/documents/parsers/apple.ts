@@ -19,7 +19,7 @@ export function parseAppleDocument(filePath: string): string {
     // textutil not available or format not supported
   }
 
-  return `(Apple-Dokument konnte nicht konvertiert werden: ${filePath})`;
+  return `(Could not convert Apple document: ${filePath})`;
 }
 
 export const APPLE_EXTENSIONS = ['.pages', '.numbers', '.key'];

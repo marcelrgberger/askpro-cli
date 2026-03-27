@@ -211,7 +211,6 @@ function showHelp(): void {
   console.log('  /clear              Clear conversation');
   console.log('  /exit               Exit');
   console.log();
-  console.log(chalk.dim('  Planned: /docs, /export, /panel, /memory, /compact'));
   console.log();
 }
 

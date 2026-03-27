@@ -251,7 +251,7 @@ export async function startRepl(args: CliArgs): Promise<void> {
 
   // Onboarding: First-time setup (interactive only)
   const isFirstRun = !settings.apiKey && !process.env.OPENAI_API_KEY && !args.apiKey;
-  const needsModelSelection = !settings.model || settings.model === 'gpt-4o';
+  const needsModelSelection = !settings.model || settings.model === 'gpt-4o' || settings.model === 'gpt-4.1';
 
   if (!args.print && (isFirstRun || needsModelSelection)) {
     const setupRl = readline.createInterface({
@@ -278,13 +278,13 @@ export async function startRepl(args: CliArgs): Promise<void> {
   // Model selection priority: CLI arg > project OPENAI.md > saved setting > default
   let model: string;
 
-  if (args.model && args.model !== 'gpt-4o') {
+  if (args.model && args.model !== 'gpt-5.4') {
     model = args.model;
   } else {
     const projectModel = getProjectModel();
     if (projectModel) {
       model = projectModel;
-    } else if (settings.model && settings.model !== 'gpt-4o') {
+    } else if (settings.model && settings.model !== 'gpt-5.4') {
       model = settings.model;
     } else {
       model = DEFAULT_MODEL;

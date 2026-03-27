@@ -111,7 +111,7 @@ export function renderWelcome(): void {
   console.log(chalk.bold.green('  askapro') + chalk.dim(' — Ask a Pro. Expert Document Agent.'));
   console.log(chalk.dim('  85+ Expert Roles | Document Analysis | Professional Outputs'));
   console.log();
-  console.log(chalk.dim('  Commands: /help, /roles, /docs, /export, /model, /copy, /clear'));
+  console.log(chalk.dim('  Commands: /help, /roles, /role, /model, /copy, /clear'));
   console.log(chalk.dim('  Quit: Ctrl+C or /exit'));
   console.log();
   console.log(

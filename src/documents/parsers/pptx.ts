@@ -28,8 +28,8 @@ export async function parsePptx(filePath: string): Promise<string> {
         parts.push(XLSX.utils.sheet_to_csv(sheet));
       }
     }
-    return parts.join('\n\n') || '(Kein Text extrahierbar)';
+    return parts.join('\n\n') || '(No text extractable)';
   } catch {
-    return '(PowerPoint-Datei konnte nicht gelesen werden)';
+    return '(Could not read PowerPoint file)';
   }
 }

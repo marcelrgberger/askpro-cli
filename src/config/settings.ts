@@ -15,8 +15,8 @@ export interface Settings {
 }
 
 const DEFAULT_SETTINGS: Settings = {
-  model: 'gpt-4.1',
-  triageModel: 'gpt-4.1-mini',
+  model: 'gpt-5.4',
+  triageModel: 'gpt-5.4-mini',
   embeddingModel: 'text-embedding-3-small',
   language: 'en',
   jurisdiction: 'DE',

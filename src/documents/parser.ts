@@ -117,9 +117,9 @@ export async function parseDocument(filePath: string): Promise<ParsedDocument> {
   // Try plaintext as last resort
   try {
     const text = parsePlaintext(filePath);
-    return { ...base, format: 'unknown', text, metadata: { warning: 'Unbekanntes Format, als Plaintext gelesen' } };
+    return { ...base, format: 'unknown', text, metadata: { warning: 'Unknown format, read as plaintext' } };
   } catch {
-    return { ...base, format: 'unknown', text: `(Datei konnte nicht gelesen werden: ${filePath})`, metadata: {} };
+    return { ...base, format: 'unknown', text: `(Could not read file: ${filePath})`, metadata: {} };
   }
 }
 

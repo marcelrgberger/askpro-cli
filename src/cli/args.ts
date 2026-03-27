@@ -17,8 +17,8 @@ export function parseArgs(): CliArgs {
     .option('model', {
       alias: 'm',
       type: 'string',
-      default: 'gpt-4o',
-      describe: 'OpenAI model to use (gpt-4o, gpt-4o-mini, o3, o4-mini)',
+      default: 'gpt-5.4',
+      describe: 'OpenAI model to use (gpt-5.4, gpt-5.4-mini, o3, o4-mini)',
     })
     .option('role', {
       alias: 'r',

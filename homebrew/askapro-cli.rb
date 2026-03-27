@@ -1,7 +1,7 @@
 class AskaproCli < Formula
   desc "Ask a Pro — AI-powered document analysis with 85+ expert consultation roles"
   homepage "https://github.com/marcelrgberger/askapro-cli"
-  url "https://github.com/marcelrgberger/askapro-cli/archive/refs/tags/v0.5.4.tar.gz"
+  url "https://github.com/marcelrgberger/askapro-cli/archive/refs/tags/v1.0.0.tar.gz"
   sha256 "PLACEHOLDER"
   license "MIT"
 
