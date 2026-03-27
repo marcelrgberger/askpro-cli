@@ -1,14 +1,14 @@
 {
   "name": "openai-cli",
-  "version": "0.1.0",
-  "description": "AI-powered document analysis with expert consultation — 65+ specialist roles for legal, medical, tax, and professional advice",
+  "version": "0.2.0",
+  "description": "AI-powered document analysis with 85+ expert consultation roles for legal, medical, tax, and professional advice",
   "author": "Marcel R. G. Berger <hello@marcelrgberger.com>",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "openai-cli": "./dist/bin/openai-cli.js"
+    "openai-cli": "./dist/openai-cli.js"
   },
-  "main": "./dist/src/index.js",
+  "main": "./dist/index.js",
   "files": [
     "dist",
     "src/roles"

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { parseArgs } from '../src/cli/args.js';
 import { startRepl } from '../src/cli/repl.js';
 
