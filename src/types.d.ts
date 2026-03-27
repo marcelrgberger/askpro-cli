@@ -1,13 +1,11 @@
 declare module 'marked-terminal' {
-  import type { RendererObject } from 'marked';
+  import type { MarkedExtension } from 'marked';
   interface TerminalRendererOptions {
     tab?: number;
     [key: string]: unknown;
   }
-  class TerminalRenderer implements RendererObject {
-    constructor(options?: TerminalRendererOptions);
-  }
-  export default TerminalRenderer;
+  export function markedTerminal(options?: TerminalRendererOptions): MarkedExtension;
+  export default markedTerminal;
 }
 
 declare module 'pdf-parse' {

@@ -1,12 +1,11 @@
 import chalk from 'chalk';
 import { marked } from 'marked';
-import TerminalRenderer from 'marked-terminal';
+import { markedTerminal } from 'marked-terminal';
 
 // Configure marked for terminal output
-marked.use({ renderer: new TerminalRenderer({ tab: 2 }) });
+marked.use(markedTerminal({ tab: 2 }));
 
 export function renderMarkdown(text: string): string {
-  // Render markdown to terminal-formatted text
   return marked.parse(text) as string;
 }
 
@@ -15,7 +14,7 @@ export function renderWelcome(): void {
   console.log(chalk.bold.green('  askapro') + chalk.dim(' — Ask a Pro. Expert Document Agent.'));
   console.log(chalk.dim('  85+ Expert Roles | Document Analysis | Professional Outputs'));
   console.log();
-  console.log(chalk.dim('  Commands: /help, /roles, /docs, /export, /model, /clear'));
+  console.log(chalk.dim('  Commands: /help, /roles, /docs, /export, /model, /copy, /clear'));
   console.log(chalk.dim('  Quit: Ctrl+C or /exit'));
   console.log();
   console.log(
