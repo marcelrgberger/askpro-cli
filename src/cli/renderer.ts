@@ -1,12 +1,33 @@
 import chalk from 'chalk';
-import { marked } from 'marked';
-import { markedTerminal } from 'marked-terminal';
 
-// Configure marked for terminal output
-marked.use(markedTerminal({ tab: 2 }));
-
+/**
+ * Render markdown text for terminal output.
+ * Converts markdown formatting to chalk-styled terminal text.
+ */
 export function renderMarkdown(text: string): string {
-  return marked.parse(text) as string;
+  return text
+    .split('\n')
+    .map((line) => {
+      // Headers
+      if (line.match(/^#{1,3}\s/)) {
+        const content = line.replace(/^#{1,3}\s+/, '');
+        return chalk.bold(content);
+      }
+
+      // Bold + italic
+      line = line.replace(/\*\*\*(.+?)\*\*\*/g, (_, t) => chalk.bold.italic(t));
+      // Bold
+      line = line.replace(/\*\*(.+?)\*\*/g, (_, t) => chalk.bold(t));
+      // Italic
+      line = line.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, (_, t) => chalk.italic(t));
+      // Inline code
+      line = line.replace(/`([^`]+)`/g, (_, t) => chalk.cyan(t));
+      // Strikethrough
+      line = line.replace(/~~(.+?)~~/g, (_, t) => chalk.strikethrough(t));
+
+      return line;
+    })
+    .join('\n');
 }
 
 export function renderWelcome(): void {
